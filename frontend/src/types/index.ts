@@ -1,0 +1,11 @@
+export { default as catalogHeader } from "./CatalogHeader";
+export { default as Categories } from "./CategoryPreview";
+export { default as footerNavigation } from "./Footer";
+export { default as promoImages } from "./Promo";
+export { default as incentives} from "./Incentive";
+export { default as navigationData } from "./Navigation";
+export { default as homeData } from "./Home";
+export { default as  heroData } from "./Hero";
+export { default as  deliveryMethods } from "./form/DeiveryMethod";
+export { default as  paymentMethods } from "./form/PaymentMethod";
+export * from "./Checkout";
