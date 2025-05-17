@@ -1,0 +1,44 @@
+# @format
+
+version: 0.2
+
+env:
+  parameter-store:
+    GITHUB_TOKEN: "/github/token"
+    DOCKERHUB_USERNAME: "/dockerhub/username"
+    DOCKERHUB_PASSWORD: "/dockerhub/password"
+
+phases:
+  pre_build:
+    commands:
+      - echo Logging in to Amazon ECR...
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com
+      - export FRONTEND_REPO=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/frontend-ecomm-dev
+      - export BACKEND_REPO=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_REGION.amazonaws.com/backend-ecomm-dev
+      - export IMAGE_TAG=$(echo $CODEBUILD_RESOLVED_SOURCE_VERSION | cut -c 1-7)
+
+  build:
+    commands:
+      - echo Building Docker Image...
+      - docker build -t $FRONTEND_REPO:$IMAGE_TAG ./frontend
+      - docker tag $FRONTEND_REPO:$IMAGE_TAG $FRONTEND_REPO:latest
+
+      - docker build -t $BACKEND_REPO:$IMAGE_TAG ./backend
+      - docker tag $BACKEND_REPO:$IMAGE_TAG $BACKEND_REPO:latest
+
+  post_build:
+    commands:
+      - echo Pushing to ECR...
+      - docker push $FRONTEND_REPO:$IMAGE_TAG
+      - docker push $FRONTEND_REPO:latest
+      - docker push $BACKEND_REPO:$IMAGE_TAG
+      - docker push $BACKEND_REPO:latest
+
+      - echo Writing imagefinitions.json...
+      - printf '[{"name":"frontend-container","imageUri":"%s"},{"name":"backend-container","imageUri":"%s"}]' $FRONTEND_REPO:$IMAGE_TAG $BACKEND_REPO:$IMAGE_TAG > imagedefinitions.json
+
+artifacts:
+  files:
+    - imagedefinitions.json
+  discard-paths: yes
+  base-directory: .
