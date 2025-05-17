@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  frontend:
+    build: ./frontend
+    env_file:
+      - ./frontend/.env
+    image: ${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/${FRONTEND_REPO}:${TAG}
+    ports:
+      - "3002:80"
+    depends_on:
+      - backend
+
+  backend:
+    build: ./backend
+    env_file:
+      - ./backend/.env
+    image: ${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/${BACKEND_REPO}:${TAG}
+    ports:
+      - "4000:4000"
+    environment:
+      - NODE_ENV=production
