@@ -41,11 +41,13 @@ echo "Building Docker images for frontend and backend..."
 docker-compose build
 
 
-# ====== 5. Push images to ECR ======
-echo "Pushing frontend image to ECR..."
-docker push $FRONTEND_IMAGE:$TAG
+# ====== Build and Push Images ======
+echo "Building and pushing frontend image for linux/amd64..."
+docker buildx build --platform linux/amd64 \
+  -t $FRONTEND_IMAGE:$TAG ./frontend --push
 
-echo "Pushing backend image to ECR..."
-docker push $BACKEND_IMAGE:$TAG
+echo "Building and pushing backend image for linux/amd64..."
+docker buildx build --platform linux/amd64 \
+  -t $BACKEND_IMAGE:$TAG ./backend --push
 
 echo "All done! Both images have been pushed to ECR."

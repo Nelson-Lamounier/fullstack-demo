@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   frontend:
     build: ./frontend
@@ -7,9 +5,20 @@ services:
       - ./frontend/.env
     image: ${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/${FRONTEND_REPO}:${TAG}
     ports:
-      - "3002:80"
+      - "${FRONTEND_PORT:-3002}:${FRONTEND_PORT:-3002}"
+    environment:
+      - PORT=${FRONTEND_PORT:-3002}
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${FRONTEND_PORT:-3002}/healthcheck"]
+      timeout: 10s
+      interval: 15s
+      retries: 5
+      start_period: 45s
+    networks:
+      - app-network
 
   backend:
     build: ./backend
@@ -17,6 +26,19 @@ services:
       - ./backend/.env
     image: ${ACCOUNT_ID}.dkr.ecr.${REGION}.amazonaws.com/${BACKEND_REPO}:${TAG}
     ports:
-      - "4000:4000"
+      - "${BACKEND_PORT:-4000}:${BACKEND_PORT:-4000}"
     environment:
       - NODE_ENV=production
+      - PORT=${BACKEND_PORT:-4000}
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:${BACKEND_PORT:-4000}/healthcheck"]
+      timeout: 10s
+      interval: 15s
+      retries: 5
+      start_period: 60s
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge

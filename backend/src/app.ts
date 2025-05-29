@@ -59,6 +59,10 @@ app.use("/api", paymentIntent);
 app.get("/", (req, res) => {
   res.send("API is running");
 });
+
+app.get("/healthcheck", (req, res) => {
+  res.status(200).send("OK");
+});
 // dropIndex();
 
 app.listen(PORT, "0.0.0.0", () =>
